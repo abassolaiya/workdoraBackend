@@ -36,12 +36,26 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/waitlist", waitlistRoutes);
 
 // Health check endpoint
-app.get("/api/health", (req, res) => {
-  res.json({
-    success: true,
-    message: "Workdora Waitlist API is running",
-    timestamp: new Date().toISOString(),
-  });
+// In your server.js, add a more comprehensive health check
+app.get("/api/health", async (req, res) => {
+  try {
+    // Try to connect to MongoDB to ensure everything is working
+    const dbState = mongoose.connection.readyState;
+    const dbStatus = dbState === 1 ? "connected" : "disconnected";
+
+    res.json({
+      success: true,
+      message: "Workdora Waitlist API is running",
+      database: dbStatus,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Health check failed",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
 });
 
 // Handle 404 errors
